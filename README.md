@@ -23,9 +23,9 @@ TRAIN MODEL Model01
 VALIDATE MODEL Model01 FROM TestData
 ```
 
-A key point to note is that when constructing the model, both the training and testing datasets come from the same table in HistoricalData, which means they have the same origin.
+A key point to note is that when constructing the model, both the training and testing datasets come from the same table in HistoricalData, which means they have the same origin. Historical Data = training + test 
 
-This approach has significant implications for developing models: having a balanced sample of data (Training and Test) is essential. When splitting data into Training and Testing sets, it's crucial to keep in mind that:
+This approach has significant implications for developing models: having a balanced sample of data (Training and Test) is essential. When splitting data into Training and Testing sets, it's crucial to keep in mind to have:
 
 - The maximum possible number of observations for training 
 - Each category of features should have an adequate representation of observations.
@@ -45,14 +45,21 @@ IRIS Example
 ============================
 
 
-just run: docker compose up
+start with: docker compose up
+
+
+Here a method was developed to generate random samples using python functions
+
 
 
 We are using a dataset from Kaggle https://www.kaggle.com/datasets/blastchar/telco-customer-churn
 
 we want to build a risk model that measures the risk of customer churn for a telco company
-As label we have the column "Churn"
-we have 20 customer-related features
+As label we have the column "Churn" and also have 20 customer-related features
+
+
+
+
 
 
 Our table with all customers data: churn01
