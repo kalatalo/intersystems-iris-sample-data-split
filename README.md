@@ -40,9 +40,9 @@ Example, if you're trying to predict hospital admission probabilities based on p
 estimations in the model. Therefore, for smaller datasets, using 50/50 split might be more suitable.
 
 
-============================
-IRIS Example 
-============================
+
+IRIS Example :
+
 
 
 start with: docker compose up
