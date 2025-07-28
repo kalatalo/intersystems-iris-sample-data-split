@@ -1,0 +1,72 @@
+CREATE OR REPLACE PROCEDURE samplingData(inputTable VARCHAR, seed INTEGER, partitionPercent REAL)
+LANGUAGE PYTHON
+{
+    import random
+    import iris
+
+    # Set the random seed for reproducibility
+    random.seed(seed)
+
+    # Fetch all IDs from the input table
+    select_ids_sql = f"SELECT ID FROM {inputTable}"
+    rs = iris.sql.exec(select_ids_sql)
+    ids = [row[0] for row in rs]
+
+    row_count = len(ids)
+
+    # Generate a random vector with values between 0 and 1
+    random_vector = [random.random() for _ in range(row_count)]
+
+    # Create a new table to store IDs and their corresponding random values
+    output_table = f"{inputTable}_sampling_result"
+    iris.sql.exec(f"DROP TABLE IF EXISTS {output_table}")
+
+    iris.sql.exec(f"""
+    CREATE TABLE {output_table} (
+        ID INT,
+        rand_value FLOAT
+    )
+    """)
+
+    # Insert the IDs and random values into the new table
+    insert_sql = f"INSERT INTO {output_table} (ID, rand_value) VALUES (?, ?)"
+    stmt = iris.sql.prepare(insert_sql)
+
+    for id_value, rand_value in zip(ids, random_vector):
+        stmt.execute(id_value, rand_value)
+
+    # Partition threshold
+    partition_threshold = partitionPercent / 100.0
+
+    # Create train and test table names with input table as prefix
+    train_table = f"{inputTable}_train_data"
+    test_table = f"{inputTable}_test_data"
+
+    # Drop train and test tables if they already exist
+    iris.sql.exec(f"DROP TABLE IF EXISTS {train_table}")
+    iris.sql.exec(f"DROP TABLE IF EXISTS {test_table}")
+
+    # Create tables for training and testing data
+    train_table_sql = f"""
+    CREATE TABLE {train_table} AS
+    SELECT {inputTable}.* FROM {inputTable}
+    INNER JOIN {output_table}
+    ON {inputTable}.ID = {output_table}.ID
+    WHERE rand_value <= {partition_threshold}
+    """
+
+    test_table_sql = f"""
+    CREATE TABLE {test_table} AS
+    SELECT {inputTable}.* FROM {inputTable}
+    INNER JOIN {output_table}
+    ON {inputTable}.ID = {output_table}.ID
+    WHERE rand_value > {partition_threshold}
+    """
+
+    iris.sql.exec(train_table_sql)
+    iris.sql.exec(test_table_sql)
+
+    # Optionally, drop the sampling_result table if no longer needed
+    # iris.sql.exec(f"DROP TABLE {output_table}")
+}
+go

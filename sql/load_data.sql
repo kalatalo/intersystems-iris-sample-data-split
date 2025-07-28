@@ -1,0 +1,2 @@
+LOAD DATA FROM FILE '/files/WA_Fn-UseC_-Telco-Customer-Churn.csv' INTO ML.churn01
+go

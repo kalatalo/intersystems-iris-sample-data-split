@@ -1,0 +1,27 @@
+
+services:
+  iris:
+    image: intersystemsdc/iris-ml-community:2024.1-zpm
+    container_name: irisml
+    ports:
+      - "52773:52773"
+      - "1972:1972"    
+    environment:
+      - IRIS_USERNAME=suser
+      - IRIS_PASSWORD=pass123
+    volumes:
+      - iris-data:/usr/irissys
+      - ./sql:/files
+
+    healthcheck:
+      test: ["CMD", "/usr/irissys/bin/iris", "session", "iris", "-U%SYS", "##class(%SYSTEM.Process).CurrentDirectory()"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    # Disable password expiration for all accounts using Security.Users.UnExpireUserPasswords()
+    command: --check-caps false -a "iris session iris -U%SYS '##class(Security.Users).UnExpireUserPasswords(\"*\")' && iris session iris -U%SYS < /files/iris.script"
+
+    restart: always
+volumes:
+  iris-data:
